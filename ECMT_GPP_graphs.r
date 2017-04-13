@@ -71,7 +71,7 @@ gpp <- ggplot() +
 
 vwc <- ggplot() +
        geom_line(data=Station.daily, aes(x=date, y= VWC)) + 
-       xlab("") + ylab(expression(paste(theta, "( m"^{3}, "m"^{-1}, ")") , sep=" ")) + 
+       xlab("") + ylab(expression(paste(theta, "( m"^{3}, "m"^{-1}, ") at", depth, " m") , sep=" ")) + 
        theme_bw() +  labs("") +
        ggtitle(expression(bold("E"))) + theme(plot.title=element_text(hjust=0)) +
        scale_y_continuous(limits=c(0,0.4)) +
