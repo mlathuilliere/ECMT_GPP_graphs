@@ -9,7 +9,6 @@ library(scales)
 
 # Complete information
 Location <- "Capuaba"       # name of site
-depth    <- "30 cm"         # depth of soil moisture sensor
 
 # Location of your data
 input.path   <- "C:/Users/Mike/Desktop/Capuaba_ML_GPP.csv"
@@ -42,23 +41,14 @@ p <- ggplot(Station.daily, aes(x=date, y=Precip*48))+
      scale_x_date(breaks = date_breaks("3 months"), labels = date_format("%b-%y"), limits=c(date1, date2))+
      theme(axis.text.x = element_blank())
 
-ra <- ggplot() +
-      geom_line(data=Station.daily, aes(x=date, y= Ra*48*10^6/(24*3600))) + 
-      xlab("") + ylab(expression(paste("R"[a], " (W s"^{-1}, ")") , sep=" ")) +
-      theme_bw() +  labs("") +
-      ggtitle(expression(bold("B"))) + theme(plot.title=element_text(hjust=0)) +
-      scale_y_continuous(limits=c(0,500)) +
-      scale_x_date(breaks = date_breaks("3 months"), labels = date_format("%b-%y"), limits=c(date1, date2))+
-      theme(axis.text.x = element_blank()) 
-
-rs <- ggplot() +
-      geom_line(data=Station.daily, aes(x=date, y= Rs)) + 
-      xlab("") + ylab(expression(paste("R"[s], " (W s"^{-1}, ")") , sep=" ")) +
-      theme_bw() +  labs("") +
-      ggtitle(expression(bold("C"))) + theme(plot.title=element_text(hjust=0)) +
-      scale_y_continuous(limits=c(0,500)) +
-      scale_x_date(breaks = date_breaks("3 months"), labels = date_format("%b-%y"), limits=c(date1, date2))+
-      theme(axis.text.x = element_blank()) 
+rs.ra <- ggplot() +
+         geom_line(data=Station.daily, aes(x=date, y= Rs/(Ra*48*10^6/(24*3600)) )) +  
+         xlab("") + ylab(expression(paste("R"[s], "/R"[a]) , sep=" ")) +
+         theme_bw() +  labs("") +
+         ggtitle(expression(bold("B"))) + theme(plot.title=element_text(hjust=0)) +
+         scale_y_continuous(limits=c(0,1)) +
+         scale_x_date(breaks = date_breaks("3 months"), labels = date_format("%b-%y"), limits=c(date1, date2))+
+         theme(axis.text.x = element_blank()) 
 
 gpp <- ggplot() +
        geom_line(data=Station.daily, aes(x=date, y= GPP)) + 
@@ -71,13 +61,13 @@ gpp <- ggplot() +
 
 vwc <- ggplot() +
        geom_line(data=Station.daily, aes(x=date, y= VWC)) + 
-       xlab("") + ylab(expression(paste(theta, "( m"^{3}, "m"^{-1}, ") at", depth, " m") , sep=" ")) + 
+       xlab("") + ylab(expression(paste(theta, " ( m"^{3}, "m"^{-1}, ")"), sep=" ")) + 
        theme_bw() +  labs("") +
        ggtitle(expression(bold("E"))) + theme(plot.title=element_text(hjust=0)) +
        scale_y_continuous(limits=c(0,0.4)) +
        scale_x_date(breaks = date_breaks("3 months"), labels = date_format("%b-%y"), limits=c(date1, date2))
        
-grid.draw(rbind(ggplotGrob(p), ggplotGrob(ra), ggplotGrob(rs), ggplotGrob(gpp), ggplotGrob(vwc), size = "last"))
+grid.draw(rbind(ggplotGrob(p), ggplotGrob(rs.ra), ggplotGrob(gpp), ggplotGrob(vwc), size = "last"))
 
 dev.print(tiff, file=output.path, width=1500, height=1500, res=150) 
 
