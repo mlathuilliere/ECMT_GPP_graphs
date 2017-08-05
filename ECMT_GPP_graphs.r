@@ -1,4 +1,4 @@
-#rm(list = ls())
+rm(list = ls())
 
 library(openair)
 library(zoo)
@@ -11,7 +11,7 @@ library(scales)
 Location <- "Capuaba"       # name of site
 
 # Location of your data
-input.path   <- "C:/Users/Mike/Desktop/Capuaba_ML_GPP.csv"
+input.path   <- "C:/Users/Mike/Desktop/ECData_GPP_Data_Irr.csv"
 
 # Location to export the graph
 output.path  <- paste("C:/Users/Mike/Desktop/GPP_", Location, ".tif", sep = "")
@@ -23,13 +23,17 @@ Station   <- read.table(input.path, header=TRUE, sep=",", na.strings="NA", dec="
 ## Format dates
 Station$timestamp <- as.POSIXct(Station$timestamp, "%d-%m-%y %H:%M", tz="GMT")     
 attributes(Station$timestamp)$tzone <- "America/Cuiaba"
-Station$date <- as.Date(Station$timestamp, "%d-%m-%y %H:%M:%S", tz="GMT")
-
-date1 <- Station$date[1]
-date2 <- tail(Station$date, 1)
+Station$date <- as.Date(Station$timestamp, "%d-%m-%y %H:%M:%S", tz="America/Cuiaba")
 
 # Obtain daily averages
 Station.daily <- timeAverage(Station, avg.time = "day", na.rm = TRUE) 
+date1 <- as.POSIXct(Station.daily$date[2])
+date2 <- as.POSIXct(tail(Station.daily$date, 1))
+
+# Obtain daily sum of GPP
+GPP.sum <- aggregate(Station$GPP, by=list(Station$date), sum, na.rm = TRUE)
+Station.daily$GPP.sum <- GPP.sum$x
+
 
 # Plot a time series of ET predicted with PT alpha and 
 
@@ -38,7 +42,7 @@ p <- ggplot(Station.daily, aes(x=date, y=Precip*48))+
      xlab("") + ylab(expression(paste(italic(P), " (mm ", "d"^{-1}, ")"), sep="")) +
      theme_bw() +
      ggtitle(expression(bold("A"))) + theme(plot.title=element_text(hjust=0)) +
-     scale_x_date(breaks = date_breaks("3 months"), labels = date_format("%b-%y"), limits=c(date1, date2))+
+     scale_x_datetime(breaks = date_breaks("3 months"), labels = date_format("%b-%y"), limits=c(date1, date2))+
      theme(axis.text.x = element_blank())
 
 rs.ra <- ggplot() +
@@ -47,25 +51,25 @@ rs.ra <- ggplot() +
          theme_bw() +  labs("") +
          ggtitle(expression(bold("B"))) + theme(plot.title=element_text(hjust=0)) +
          scale_y_continuous(limits=c(0,1)) +
-         scale_x_date(breaks = date_breaks("3 months"), labels = date_format("%b-%y"), limits=c(date1, date2))+
+         scale_x_datetime(breaks = date_breaks("3 months"), labels = date_format("%b-%y"), limits=c(date1, date2))+
          theme(axis.text.x = element_blank()) 
 
 gpp <- ggplot() +
        geom_line(data=Station.daily, aes(x=date, y= GPP)) + 
-       xlab("") + ylab(expression(paste("GPP (", mu, "mol m"^{-2}, "s"^{-1}, ")") , sep=" ")) +
+       xlab("") + ylab(expression(paste("GPP (", mu, "mol m"^{-2}, "d"^{-1}, ")") , sep=" ")) +
        theme_bw() +  labs("") +
-       ggtitle(expression(bold("D"))) + theme(plot.title=element_text(hjust=0)) +
+       ggtitle(expression(bold("C"))) + theme(plot.title=element_text(hjust=0)) +
        #scale_y_continuous(limits=c(0,500)) +
-       scale_x_date(breaks = date_breaks("3 months"), labels = date_format("%b-%y"), limits=c(date1, date2))+
+       scale_x_datetime(breaks = date_breaks("3 months"), labels = date_format("%b-%y"), limits=c(date1, date2))+
        theme(axis.text.x = element_blank()) 
 
 vwc <- ggplot() +
        geom_line(data=Station.daily, aes(x=date, y= VWC)) + 
        xlab("") + ylab(expression(paste(theta, " ( m"^{3}, "m"^{-1}, ")"), sep=" ")) + 
        theme_bw() +  labs("") +
-       ggtitle(expression(bold("E"))) + theme(plot.title=element_text(hjust=0)) +
+       ggtitle(expression(bold("D"))) + theme(plot.title=element_text(hjust=0)) +
        scale_y_continuous(limits=c(0,0.4)) +
-       scale_x_date(breaks = date_breaks("3 months"), labels = date_format("%b-%y"), limits=c(date1, date2))
+       scale_x_datetime(breaks = date_breaks("3 months"), labels = date_format("%b-%y"), limits=c(date1, date2))
        
 grid.draw(rbind(ggplotGrob(p), ggplotGrob(rs.ra), ggplotGrob(gpp), ggplotGrob(vwc), size = "last"))
 
