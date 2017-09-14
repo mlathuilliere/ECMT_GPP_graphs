@@ -11,10 +11,10 @@ library(scales)
 Location <- "Capuaba"       # name of site
 
 # Location of your data
-input.path   <- "C:/Users/Mike/Desktop/ECData_GPP_Data_Irr.csv"
+input.path   <- "C:/Users/Mike Lathuilliere/Dropbox/EC_Group_MT/ECData_GPP_Data_Rain.csv"
 
 # Location to export the graph
-output.path  <- paste("C:/Users/Mike/Desktop/GPP_", Location, ".tif", sep = "")
+output.path  <- paste("C:/Users/Mike Lathuilliere/Desktop/GPP_", Location, ".tif", sep = "")
 
 # Import your data
 Station   <- read.table(input.path, header=TRUE, sep=",", na.strings="NA", dec=".", strip.white=TRUE, skip=0)
@@ -30,8 +30,12 @@ Station.daily <- timeAverage(Station, avg.time = "day", na.rm = TRUE)
 date1 <- as.POSIXct(Station.daily$date[2])
 date2 <- as.POSIXct(tail(Station.daily$date, 1))
 
+# Convert GPP to g CO2-C/m2s
+Station$GPP.C    <- Station$GPP*10^-6*43.999*(12/43.999)
+Station$GPP.Cday <- Station$GPP.C*1500*24
+  
 # Obtain daily sum of GPP
-GPP.sum <- aggregate(Station$GPP, by=list(Station$date), sum, na.rm = TRUE)
+GPP.sum <- aggregate(Station$GPP.Cday, by=list(Station$date), sum, na.rm = TRUE)
 Station.daily$GPP.sum <- GPP.sum$x
 
 
@@ -56,7 +60,7 @@ rs.ra <- ggplot() +
 
 gpp <- ggplot() +
        geom_line(data=Station.daily, aes(x=date, y= GPP)) + 
-       xlab("") + ylab(expression(paste("GPP (", mu, "mol m"^{-2}, "d"^{-1}, ")") , sep=" ")) +
+       xlab("") + ylab(expression(paste("GPP (g CO"[2], "-C (g m"^{-2}, "d"^{-1}, ")") , sep=" ")) +
        theme_bw() +  labs("") +
        ggtitle(expression(bold("C"))) + theme(plot.title=element_text(hjust=0)) +
        #scale_y_continuous(limits=c(0,500)) +
